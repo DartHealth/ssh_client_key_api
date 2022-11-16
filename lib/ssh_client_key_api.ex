@@ -53,9 +53,8 @@ defmodule SSHClientKeyAPI do
         opts
         |> known_hosts_data
         |> :public_key.ssh_decode(:known_hosts)
-        |> (fn decoded -> decoded ++ [{key, [{:hostnames, [hostname]}]}] end).()
-        |> :public_key.ssh_encode(:known_hosts)
-        |> (fn encoded -> IO.binwrite(known_hosts(opts), encoded) end).()
+        |> add_known_host_key(key, hostname)
+        |> write_known_hosts(opts)
 
       _ ->
         message = """
@@ -162,5 +161,14 @@ defmodule SSHClientKeyAPI do
     |> Keyword.put_new_lazy(:identity, &default_identity/0)
     |> Keyword.put_new_lazy(:known_hosts, &default_known_hosts/0)
     |> Keyword.put_new(:silently_accept_hosts, false)
+  end
+
+  defp add_known_host_key(known_hosts, key, hostname) do
+    known_hosts ++ [{key, [{:hostnames, [hostname]}]}]
+  end
+
+  defp write_known_hosts(known_hosts, opts) do
+    encoded = :public_key.ssh_encode(known_hosts, :known_hosts)
+    IO.binwrite(known_hosts(opts), encoded)
   end
 end
