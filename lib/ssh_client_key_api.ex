@@ -8,7 +8,6 @@ defmodule SSHClientKeyAPI do
   alias SSHClientKeyAPI.KeyError
 
   @behaviour :ssh_client_key_api
-  @key_algorithms :ssh.default_algorithms()[:public_key]
 
   @doc """
   Returns a tuple suitable for passing the `SSHKit.SSH.connect/2` as the `key_cb` option.
@@ -67,7 +66,7 @@ defmodule SSHClientKeyAPI do
     end
   end
 
-  def is_host_key(key, hostname, alg, opts) when alg in @key_algorithms do
+  def is_host_key(key, hostname, _alg, opts) do
     silently_accept_hosts(opts) ||
       opts
       |> known_hosts_data
@@ -76,22 +75,13 @@ defmodule SSHClientKeyAPI do
       |> has_fingerprint(key, hostname)
   end
 
-  def is_host_key(_, _, alg, _) do
-    IO.puts("unsupported host key algorithm #{inspect(alg)}")
-    false
-  end
-
-  def user_key(alg, opts) when alg in @key_algorithms do
+  def user_key(_alg, opts) do
     opts
     |> identity_data
     |> to_string
     |> :public_key.pem_decode()
     |> List.first()
     |> decode_pem_entry(passphrase(opts))
-  end
-
-  def user_key(alg, _) do
-    raise KeyError, {:unsupported_algorithm, alg}
   end
 
   defp decode_pem_entry(nil, _phrase) do
