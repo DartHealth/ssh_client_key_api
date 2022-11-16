@@ -40,8 +40,8 @@ defmodule SSHClientKeyAPI do
 
     opts =
       opts
-      |> Keyword.put(:identity_data, IO.binread(opts[:identity], :all))
-      |> Keyword.put(:known_hosts_data, IO.binread(opts[:known_hosts], :all))
+      |> Keyword.put(:identity_data, IO.binread(opts[:identity], :eof))
+      |> Keyword.put(:known_hosts_data, IO.binread(opts[:known_hosts], :eof))
 
     {__MODULE__, opts}
   end
