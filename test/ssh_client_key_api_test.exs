@@ -208,21 +208,6 @@ defmodule SSHClientKeyAPITest do
     end
   end
 
-  test "user key returns error if trying to use unsupported algorithm", %{
-    protected_key: protected_key
-  } do
-    assert_raise KeyError, ~r/not supported/, fn ->
-      SSHClientKeyAPI.user_key(
-        :"ssh-scooby-doo",
-        key_cb_private: [
-          passphrase: 'wrong',
-          identity: protected_key,
-          identity_data: IO.binread(protected_key, :all)
-        ]
-      )
-    end
-  end
-
   test "with correct passphrase, user key returns contents of protected key", %{
     protected_key: protected_key
   } do
