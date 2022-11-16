@@ -14,8 +14,8 @@ jobs:
       MIX_ENV: test
     strategy:
       matrix:
-        elixir: ["1.11.4", "1.12.3"]
-        otp: ["22.3.4.26", "23.3.4.18"]
+        elixir: ["1.13.4"]
+        otp: ["24.3.4"]
 
     steps:
       - name: Checkout repository
@@ -26,10 +26,10 @@ jobs:
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
-          build-flags: --all-warnings
+          build-flags: --all-warnings --warnings-as-errors
 
       - name: Run Tests
-        run: mix coveralls.json
+        run: mix coveralls.json --warnings-as-errors
         if: always()
 
       # Optional, but Codecov has a bot that will comment on your PR with per-file
