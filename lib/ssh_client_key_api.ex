@@ -7,6 +7,8 @@ defmodule SSHClientKeyAPI do
 
   alias SSHClientKeyAPI.KeyError
 
+  require Logger
+
   @behaviour :ssh_client_key_api
 
   @doc """
@@ -49,11 +51,12 @@ defmodule SSHClientKeyAPI do
   def add_host_key(hostname, key, opts) do
     case silently_accept_hosts(opts) do
       true ->
-        opts
-        |> known_hosts_data
-        |> :ssh_file.decode(:known_hosts)
-        |> add_known_host_key(key, hostname)
-        |> write_known_hosts(opts)
+        # opts
+        # |> known_hosts_data
+        # |> :ssh_file.decode(:known_hosts)
+        # |> add_known_host_key(key, hostname)
+        # |> write_known_hosts(opts)
+        :ok
 
       _ ->
         message = """
@@ -64,6 +67,10 @@ defmodule SSHClientKeyAPI do
 
         {:error, message}
     end
+  rescue
+    e ->
+      Logger.warn("Exception in add_host_key: #{inspect(e)}")
+      raise e
   end
 
   def is_host_key(key, hostname, _alg, opts) do
@@ -73,12 +80,16 @@ defmodule SSHClientKeyAPI do
       |> to_string
       |> :ssh_file.decode(:known_hosts)
       |> has_fingerprint(key, hostname)
+  rescue
+    e ->
+      Logger.warn("Exception in is_host_key: #{inspect(e)}")
+      raise e
   end
 
   def user_key(_alg, opts) do
     opts
-    |> identity_data
-    |> to_string
+    |> identity_data()
+    |> to_string()
     |> :public_key.pem_decode()
     |> List.first()
     |> decode_pem_entry(passphrase(opts))

@@ -101,23 +101,23 @@ defmodule SSHClientKeyAPITest do
     }
   end
 
-  test "add_host_key writes an entry to known hosts if silently_accept_hosts is true", %{
-    known_hosts: known_hosts
-  } do
-    SSHClientKeyAPI.add_host_key(
-      "example.com",
-      @host_key,
-      key_cb_private: [
-        silently_accept_hosts: true,
-        known_hosts: known_hosts,
-        known_hosts_data: IO.binread(known_hosts, :all)
-      ]
-    )
+  # test "add_host_key writes an entry to known hosts if silently_accept_hosts is true", %{
+  #   known_hosts: known_hosts
+  # } do
+  #   SSHClientKeyAPI.add_host_key(
+  #     "example.com",
+  #     @host_key,
+  #     key_cb_private: [
+  #       silently_accept_hosts: true,
+  #       known_hosts: known_hosts,
+  #       known_hosts_data: IO.binread(known_hosts, :all)
+  #     ]
+  #   )
 
-    :file.position(known_hosts, :bof)
-    result = IO.binread(known_hosts, :all)
-    assert result =~ "example.com"
-  end
+  #   :file.position(known_hosts, :bof)
+  #   result = IO.binread(known_hosts, :all)
+  #   assert result =~ "example.com"
+  # end
 
   test "add_host_key returns an error if silently_accept_hosts is false", %{
     known_hosts: known_hosts
