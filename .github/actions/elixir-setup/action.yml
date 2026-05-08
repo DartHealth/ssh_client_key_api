@@ -29,7 +29,7 @@ inputs:
   build-flags:
     required: false
     type: string
-    default: '--all-warnings'
+    default: "--all-warnings"
     description: Flags to pass to mix compile
   install-rebar:
     required: false
@@ -44,7 +44,7 @@ inputs:
   cache-key:
     required: false
     type: string
-    default: 'v1'
+    default: "v1"
     description: If you need to reset the cache for some reason, you can change this key.
 runs:
   using: "composite"
@@ -56,7 +56,7 @@ runs:
         otp-version: ${{ inputs.otp-version }}
 
     - name: Get deps cache
-      uses: actions/cache@v2
+      uses: actions/cache@v5
       with:
         path: deps/
         key: deps-${{ inputs.cache-key }}-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
@@ -64,7 +64,7 @@ runs:
           deps-${{ inputs.cache-key }}-${{ runner.os }}-
 
     - name: Get build cache
-      uses: actions/cache@v2
+      uses: actions/cache@v5
       id: build-cache
       with:
         path: _build/${{env.MIX_ENV}}/
@@ -79,7 +79,7 @@ runs:
     # I force a full recompile only on builds that we retry.
     - name: Clean to rule out incremental build as a source of flakiness
       if: github.run_attempt != '1'
-      run: | 
+      run: |
         mix deps.clean --all
         mix clean
       shell: sh
