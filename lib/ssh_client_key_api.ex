@@ -66,6 +66,7 @@ defmodule SSHClientKeyAPI do
     end
   end
 
+  # credo:disable-for-next-line Credo.Check.Readability.PredicateFunctionNames
   def is_host_key(key, hostname, _alg, opts) do
     silently_accept_hosts(opts) ||
       opts
