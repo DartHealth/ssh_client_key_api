@@ -142,7 +142,7 @@ defmodule SSHClientKeyAPITest do
     result =
       SSHClientKeyAPI.is_host_key(
         @host_key,
-        'github.com',
+        ~c"github.com",
         :"ssh-dss",
         key_cb_private: [
           silently_accept_hosts: false,
@@ -160,7 +160,7 @@ defmodule SSHClientKeyAPITest do
     result =
       SSHClientKeyAPI.is_host_key(
         @host_key,
-        'other.com',
+        ~c"other.com",
         :"ssh-dss",
         key_cb_private: [
           silently_accept_hosts: false,
@@ -200,7 +200,7 @@ defmodule SSHClientKeyAPITest do
       SSHClientKeyAPI.user_key(
         :"ssh-dss",
         key_cb_private: [
-          passphrase: 'wrong',
+          passphrase: ~c"wrong",
           identity: protected_key,
           identity_data: IO.binread(protected_key, :all)
         ]
@@ -215,7 +215,7 @@ defmodule SSHClientKeyAPITest do
       SSHClientKeyAPI.user_key(
         :"ssh-dss",
         key_cb_private: [
-          passphrase: 'phrase',
+          passphrase: ~c"phrase",
           identity: protected_key,
           identity_data: IO.binread(protected_key, :all)
         ]

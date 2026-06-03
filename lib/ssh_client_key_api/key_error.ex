@@ -5,6 +5,9 @@ defmodule SSHClientKeyAPI.KeyError do
 
   def exception(reason), do: %__MODULE__{reason: reason}
 
+  def message(%__MODULE__{reason: :unsupported_algorithm, algorithm: algo}) when not is_nil(algo),
+    do: "key algorithm is not supported: #{algo}"
+
   def message(%__MODULE__{reason: :unsupported_algorithm}), do: "key algorithm is not supported"
 
   def message(%__MODULE__{reason: :passphrase_required}),
@@ -12,7 +15,4 @@ defmodule SSHClientKeyAPI.KeyError do
 
   def message(%__MODULE__{reason: :incorrect_passphrase}),
     do: "passphrase invalid for protected key"
-
-  def message(%__MODULE__{reason: :unsupported_algorithm, algorithm: algo}),
-    do: "key algorithm is not supported: #{algo}"
 end
