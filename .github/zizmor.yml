@@ -1,0 +1,15 @@
+# zizmor configuration (SC-6615). See the header comment in
+# .github/workflows/github-actions-scan.yml.
+#
+# Prefer an inline `# zizmor: ignore[<audit>]` comment, with a reason, on the
+# one line a finding is about. Disable an audit here only when it is wrong for
+# the whole repo.
+rules:
+  # GitHub's `uses: $/...` self-repository syntax (2026-07-30) would be safe
+  # for our paths, but actionlint 1.7.12 rejects it as an invalid `uses:`, and
+  # while it can't parse those references it also stops checking the inputs
+  # we pass to our own composite action and reusable workflows. Re-enable this
+  # audit, and let `zizmor --fix` rewrite `./` to `$/`, once actionlint
+  # supports it: https://github.com/rhysd/actionlint/issues/711
+  self-repository:
+    disable: true
