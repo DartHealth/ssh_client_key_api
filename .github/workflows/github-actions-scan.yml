@@ -1,0 +1,80 @@
+name: GitHub Actions Scan
+
+# Security (zizmor) and correctness (actionlint) scanning of this repo's own
+# GitHub Actions config (SC-6615). Each job fails on any finding. zizmor covers
+# workflows, composite actions and dependabot.yml; actionlint covers workflows
+# only -- it does not lint the steps of composite actions.
+#
+# Results arrive as annotations on each job's check run (inline on the diff for
+# a PR). GitHub renders at most 10 annotations per step, so the job log is the
+# complete list. The job still fails on any finding, however many are rendered.
+#
+# No path filter, on purpose: a path-filtered workflow never reports on a PR
+# that doesn't touch .github/, so it could never be made a required check.
+# Both jobs finish in well under a minute.
+#
+# Run both locally before pushing a workflow change:
+#   GH_TOKEN=$(gh auth token) zizmor .   # without a token, online audits are skipped
+#   actionlint
+# To suppress a finding, put `# zizmor: ignore[<audit>]` with a reason on the
+# offending line. Disable an audit repo-wide (.github/zizmor.yml) only when it
+# is wrong for the whole repo.
+#
+# The same file runs in every DartHealth repo with workflows (SC-6615);
+# DartHealth/datahub holds the rollout notes. Keep the copies in step.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        with:
+          # Annotations, not SARIF. In SARIF mode zizmor exits 0 whatever it
+          # finds, so `advanced-security: true` would quietly turn this gate
+          # into an advisory check -- even on a repo that has Code Scanning.
+          advanced-security: false
+          annotations: true
+          # `version` is left at its default, `latest`, which the action
+          # resolves to the digest-pinned zizmor image it shipped with. So the
+          # SHA pin above also pins zizmor, and a Dependabot bump of this action
+          # is the zizmor upgrade.
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Turns actionlint's output into PR annotations. The matcher file is
+      # upstream's, copied verbatim at the same version as the image below.
+      - name: Register actionlint problem matcher
+        run: echo "::add-matcher::.github/actionlint-matcher.json"
+
+      # The image bundles shellcheck, so `run:` blocks are checked too. This is
+      # a digest-pinned docker:// reference, which Dependabot may not bump:
+      # update it by hand, and re-copy the matcher from the same tag.
+      - name: Run actionlint
+        uses: docker://rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+        with:
+          args: -color

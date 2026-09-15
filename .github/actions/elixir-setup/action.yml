@@ -3,11 +3,9 @@ description: Checks out the code, configures Elixir, fetches dependencies, and m
 inputs:
   elixir-version:
     required: true
-    type: string
     description: Elixir version to set up
   otp-version:
     required: true
-    type: string
     description: OTP version to set up
   #################################################################
   # Everything below this line is optional.
@@ -18,45 +16,39 @@ inputs:
   #################################################################
   build-deps:
     required: false
-    type: boolean
     default: true
     description: True if we should compile dependencies
   build-app:
     required: false
-    type: boolean
     default: true
     description: True if we should compile the application itself
   build-flags:
     required: false
-    type: string
     default: "--all-warnings"
     description: Flags to pass to mix compile
   install-rebar:
     required: false
-    type: boolean
     default: true
     description: By default, we will install Rebar (mix local.rebar --force).
   install-hex:
     required: false
-    type: boolean
     default: true
     description: By default, we will install Hex (mix local.hex --force).
   cache-key:
     required: false
-    type: string
     default: "v1"
     description: If you need to reset the cache for some reason, you can change this key.
 runs:
   using: "composite"
   steps:
     - name: Setup elixir
-      uses: erlef/setup-beam@v1
+      uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
       with:
         elixir-version: ${{ inputs.elixir-version }}
         otp-version: ${{ inputs.otp-version }}
 
     - name: Get deps cache
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: deps/
         key: deps-${{ inputs.cache-key }}-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
@@ -64,7 +56,7 @@ runs:
           deps-${{ inputs.cache-key }}-${{ runner.os }}-
 
     - name: Get build cache
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       id: build-cache
       with:
         path: _build/${{env.MIX_ENV}}/
@@ -104,6 +96,14 @@ runs:
       if: inputs.build-deps == 'true'
 
     - name: Compile Application
-      run: mix compile ${{ inputs.build-flags }}
+      # Inputs reach the shell through env, never as `${{ }}` inside `run:`,
+      # so a value is data rather than script (zizmor template-injection).
+      # BUILD_FLAGS is deliberately unquoted: it carries several flags that
+      # must word-split into separate arguments.
+      run: |
+        # shellcheck disable=SC2086
+        mix compile $BUILD_FLAGS
       shell: sh
       if: inputs.build-app == 'true'
+      env:
+        BUILD_FLAGS: ${{ inputs.build-flags }}
